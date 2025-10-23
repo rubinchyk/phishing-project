@@ -1,8 +1,15 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 
+/**
+ * Mongoose document type for Attempt with hydrated methods.
+ */
 export type AttemptDocument = HydratedDocument<Attempt>;
 
+/**
+ * Represents a phishing simulation attempt sent to a target email.
+ * Tracks delivery status and click events.
+ */
 @Schema({
   timestamps: { createdAt: true, updatedAt: false },
   collection: 'attempts',
@@ -26,6 +33,9 @@ export class Attempt {
   @Prop()
   clickedAt?: Date;
 
+  /**
+   * ⚠️ Sensitive: Token used to verify click authenticity. Never expose in API responses.
+   */
   @Prop({ select: false })
   clickToken?: string;
 }

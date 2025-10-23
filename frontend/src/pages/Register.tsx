@@ -3,6 +3,9 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import './Auth.css';
 
+/**
+ * Registration form for creating administrator accounts. Shares styling with the login page.
+ */
 export const Register: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -29,10 +32,16 @@ export const Register: React.FC = () => {
     setLoading(true);
 
     try {
+      // ⚠️ Sensitive: credentials are submitted to backend; do not persist or log locally.
       await register(email, password);
       navigate('/dashboard');
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Registration failed');
+    } catch (err: unknown) {
+      const message =
+        err && typeof err === 'object' && 'response' in err
+          ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            ((err as any).response?.data?.message as string | undefined)
+          : undefined;
+      setError(message || 'Registration failed');
     } finally {
       setLoading(false);
     }

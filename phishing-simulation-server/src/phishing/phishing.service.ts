@@ -7,12 +7,18 @@ import * as nodemailer from 'nodemailer';
 import type { Transporter } from 'nodemailer';
 import { randomBytes } from 'crypto';
 
+/**
+ * DTO for sending a phishing simulation email.
+ */
 interface SendPhishingDto {
   email: string;
   subject?: string;
   content?: string;
 }
 
+/**
+ * Service responsible for sending phishing emails and tracking click events.
+ */
 @Injectable()
 export class PhishingService {
   private readonly transporter: Transporter;
@@ -28,6 +34,8 @@ export class PhishingService {
     this.baseUrl =
       this.config.get<string>('BASE_URL') ?? 'http://localhost:3001';
 
+    // ⚠️ Sensitive: SMTP credentials loaded from environment variables. Never log these values.
+
     const transporter: Transporter = nodemailer.createTransport({
       host: this.config.get<string>('SMTP_HOST'),
       port: Number(this.config.get<string>('SMTP_PORT') ?? 587),
@@ -41,7 +49,12 @@ export class PhishingService {
     this.transporter = transporter;
   }
 
+  /**
+   * Sends a phishing simulation email and stores the attempt in MongoDB.
+   * Generates a unique click token for tracking.
+   */
   async sendPhishing(dto: SendPhishingDto): Promise<Attempt> {
+    // ⚠️ Sensitive: clickToken must remain secret to prevent unauthorized click spoofing.
     const clickToken = randomBytes(16).toString('hex');
 
     const attempt = await this.attemptModel.create({
@@ -82,9 +95,15 @@ export class PhishingService {
     return attempt.toObject();
   }
 
-  async recordClick(id: string, token?: string): Promise<boolean> {
+  /**
+   * Records a click event if the provided token matches the stored clickToken.
+   * ⚠️ Sensitive: Token validation prevents unauthorized status updates.
+   */
+  async recordClick(attemptId: string, token?: string): Promise<boolean> {
     if (!token) return false;
-    const attempt = await this.attemptModel.findById(id).select('+clickToken');
+    const attempt = await this.attemptModel
+      .findById(attemptId)
+      .select('+clickToken');
     if (!attempt) return false;
     if (attempt.clickToken !== token) return false;
 

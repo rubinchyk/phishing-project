@@ -3,6 +3,9 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import './Auth.css';
 
+/**
+ * Apple-style login form that authenticates administrators and stores JWT tokens via `useAuth`.
+ */
 export const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -17,10 +20,16 @@ export const Login: React.FC = () => {
     setLoading(true);
 
     try {
+      // ⚠️ Sensitive: credentials are sent to backend; never log them in browser console.
       await login(email, password);
       navigate('/dashboard');
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Invalid credentials');
+    } catch (err: unknown) {
+      const message =
+        err && typeof err === 'object' && 'response' in err
+          ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            ((err as any).response?.data?.message as string | undefined)
+          : undefined;
+      setError(message || 'Invalid credentials');
     } finally {
       setLoading(false);
     }

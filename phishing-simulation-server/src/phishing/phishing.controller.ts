@@ -9,10 +9,16 @@ import {
 } from '@nestjs/common';
 import { PhishingService } from './phishing.service';
 
+/**
+ * Controller for phishing simulation endpoints: sending emails and recording clicks.
+ */
 @Controller('phishing')
 export class PhishingController {
   constructor(private readonly service: PhishingService) {}
 
+  /**
+   * Sends a phishing simulation email to the specified recipient.
+   */
   @Post('send')
   async send(
     @Body() body: { email: string; subject?: string; content?: string },
@@ -25,6 +31,10 @@ export class PhishingController {
     return attempt;
   }
 
+  /**
+   * Records a click event when a recipient clicks the phishing link.
+   * Validates the token to prevent unauthorized updates.
+   */
   @Get('click/:id')
   @HttpCode(200)
   async click(@Param('id') id: string, @Query('t') token?: string) {

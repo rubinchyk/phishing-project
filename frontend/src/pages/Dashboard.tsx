@@ -4,6 +4,9 @@ import { useAuth } from '../context/AuthContext';
 import { attemptsAPI, type Attempt } from '../api/client';
 import './Dashboard.css';
 
+/**
+ * Main administration dashboard that lists phishing attempts and provides a form to trigger new ones.
+ */
 export const Dashboard: React.FC = () => {
   const [attempts, setAttempts] = useState<Attempt[]>([]);
   const [loading, setLoading] = useState(true);
@@ -23,7 +26,8 @@ export const Dashboard: React.FC = () => {
       const response = await attemptsAPI.getAll();
       setAttempts(response.data);
       setError('');
-    } catch (err: any) {
+    } catch (err: unknown) {
+      console.error('Failed to load attempts', err);
       setError('Failed to load attempts');
     } finally {
       setLoading(false);
@@ -47,8 +51,13 @@ export const Dashboard: React.FC = () => {
       setSubject('');
       setContent('');
       await fetchAttempts();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to send email');
+    } catch (err: unknown) {
+      const message =
+        err && typeof err === 'object' && 'response' in err
+          ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            ((err as any).response?.data?.message as string | undefined)
+          : undefined;
+      setError(message || 'Failed to send email');
     } finally {
       setSending(false);
     }

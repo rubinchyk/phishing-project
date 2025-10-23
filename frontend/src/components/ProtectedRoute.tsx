@@ -6,6 +6,9 @@ interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
+/**
+ * Restricts access to authenticated users. Displays a loading state while auth initializes.
+ */
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
 

@@ -9,16 +9,25 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { User, UserDocument } from '../schemas/user.schema';
 
+/**
+ * DTO for user registration.
+ */
 interface RegisterDto {
   email: string;
   password: string;
 }
 
+/**
+ * DTO for user login.
+ */
 interface LoginDto {
   email: string;
   password: string;
 }
 
+/**
+ * Service handling user authentication: registration, login, and JWT token generation.
+ */
 @Injectable()
 export class AuthService {
   constructor(
@@ -26,12 +35,17 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
+  /**
+   * Registers a new administrator and returns a JWT access token.
+   * ⚠️ Sensitive: Password is hashed with bcrypt before storage.
+   */
   async register(dto: RegisterDto): Promise<{ accessToken: string }> {
     const existing = await this.userModel.findOne({ email: dto.email });
     if (existing) {
       throw new ConflictException('User already exists');
     }
 
+    // ⚠️ Sensitive: Hash password with bcrypt (cost factor 10).
     const passwordHash = await bcrypt.hash(dto.password, 10);
     const user = await this.userModel.create({
       email: dto.email,
@@ -44,6 +58,10 @@ export class AuthService {
     return { accessToken };
   }
 
+  /**
+   * Authenticates an administrator and returns a JWT access token.
+   * ⚠️ Sensitive: Validates password against stored bcrypt hash.
+   */
   async login(dto: LoginDto): Promise<{ accessToken: string }> {
     const user = await this.userModel
       .findOne({ email: dto.email })
@@ -53,6 +71,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
+    // ⚠️ Sensitive: Compare plaintext password with bcrypt hash.
     const valid = await bcrypt.compare(dto.password, user.passwordHash);
     if (!valid) {
       throw new UnauthorizedException('Invalid credentials');
