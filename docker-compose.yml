@@ -1,0 +1,30 @@
+version: "3.8"
+services:
+  mongo:
+    image: mongo:6
+    ports: ["27017:27017"]
+    volumes: ["mongo_data:/data/db"]
+
+  phishing-simulation:
+    build: ./phishing-simulation-server
+    env_file: ./.env
+    ports: ["3001:3001"]
+    depends_on: ["mongo"]
+
+  phishing-management:
+    build: ./phishing-management-server
+    env_file: ./.env
+    ports: ["3000:3000"]
+    depends_on: ["mongo","phishing-simulation"]
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        - REACT_APP_API_URL=${REACT_APP_API_URL}
+    env_file: ./.env
+    ports: ["8080:80"]
+    depends_on: ["phishing-management"]
+
+volumes:
+  mongo_data:

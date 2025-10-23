@@ -1,0 +1,56 @@
+# Logs
+logs
+*.log
+*.log.*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Dependency directories
+node_modules/
+
+# Build output
+dist/
+build/
+coverage/
+.cache/
+.vite/
+.vite-ssg-cache/
+
+# TypeScript
+*.tsbuildinfo
+
+# Environment files
+.env
+.env.*.local
+*.local
+
+# Editor and OS files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Lint/formatter caches
+.eslintcache
+.stylelintcache
+
+# Package managers
+.pnpm-store/
+
+# Docker
+docker-data/
+*.tar
+docker-compose.override.yml
+
+# Optional: ignore local CLI history
+.node_repl_history
