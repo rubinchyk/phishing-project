@@ -34,6 +34,12 @@ export class Attempt {
   clickedAt?: Date;
 
   /**
+   * Expiration timestamp for the click token. After this time, the link is invalid.
+   */
+  @Prop()
+  expiresAt?: Date;
+
+  /**
    * ⚠️ Sensitive: Token used to verify click authenticity. Never expose in API responses.
    */
   @Prop({ select: false })

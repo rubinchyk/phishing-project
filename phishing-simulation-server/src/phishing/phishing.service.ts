@@ -24,6 +24,7 @@ export class PhishingService {
   private readonly transporter: Transporter;
   private readonly fromEmail: string;
   private readonly baseUrl: string;
+  private readonly tokenExpirationHours: number;
 
   constructor(
     @InjectModel(Attempt.name) private attemptModel: Model<AttemptDocument>,
@@ -33,6 +34,8 @@ export class PhishingService {
       this.config.get<string>('FROM_EMAIL') ?? 'no-reply@example.com';
     this.baseUrl =
       this.config.get<string>('BASE_URL') ?? 'http://localhost:3001';
+    this.tokenExpirationHours =
+      Number(this.config.get<string>('TOKEN_EXPIRATION_HOURS')) || 24;
 
     // ⚠️ Sensitive: SMTP credentials loaded from environment variables. Never log these values.
 
@@ -57,12 +60,17 @@ export class PhishingService {
     // ⚠️ Sensitive: clickToken must remain secret to prevent unauthorized click spoofing.
     const clickToken = randomBytes(16).toString('hex');
 
+    // Set token expiration based on configured hours (TOKEN_EXPIRATION_HOURS)
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + this.tokenExpirationHours);
+
     const attempt = await this.attemptModel.create({
       email: dto.email,
       subject: dto.subject,
       content: dto.content,
       status: 'pending',
       clickToken,
+      expiresAt,
     });
 
     const clickUrl = `${this.baseUrl}/phishing/click/${attempt.id}?t=${clickToken}`;
@@ -106,6 +114,11 @@ export class PhishingService {
       .select('+clickToken');
     if (!attempt) return false;
     if (attempt.clickToken !== token) return false;
+
+    // Check if token has expired
+    if (attempt.expiresAt && new Date() > attempt.expiresAt) {
+      return false;
+    }
 
     attempt.status = 'clicked';
     attempt.clickedAt = new Date();
